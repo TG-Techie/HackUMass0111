@@ -1,6 +1,6 @@
-# NAP's HackUMass VII Project
+# ACP's HackUMass VII Project
 
-NAP stands for **N**AP's **A** **P**un
+ACP stands for **A**bstract **C**oding **P**un.
 
 Contributors:
  - Jonah Yolles-Murphy
