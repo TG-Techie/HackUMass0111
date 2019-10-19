@@ -58,13 +58,16 @@ class LoginScreen(GridLayout):
         self.camera_button = Button(text ="camera")
         self.camera_button.bind(state=self.camera_pressed)
         self.add_widget(self.camera_button)
+
     def getUserName(self):
         return self.username.text
+
     def camera_pressed(self, inst, val):
         if val == "down":
             return CameraClick()
         else:
             return None
+
     def login_pressed(self, inst, val):
         if val == "down":
             print(str(self.getUserName()))
@@ -84,4 +87,3 @@ class MyApp(App):
 
 if __name__ == "__main__":
     MyApp().run()
-
