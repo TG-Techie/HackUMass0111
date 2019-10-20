@@ -53,7 +53,7 @@ def string_and_otp_bitmap(string, sepchar, size, write_svg=False):
     """
     otp = os.urandom(size)
     return (otp, binary_to_bitmap(bytearray().join([(string + sepchar).encode('ascii'), otp]), write_svg))
-"""
+'''
 def write_bitmap_to_canvas(bitmap, w):
     """
     Writes a bitmap to a Tkinter canvas for scanning purposes
@@ -107,4 +107,5 @@ def write_bitmap_to_canvas(bitmap, w):
                                             fill="white", outline="")
 
             w.after(20, write_bitmap_to_canvas)
->>>>>>> 3561c90d455611358774135ec50a8435e5820d82"""
+>>>>>>> 3561c90d455611358774135ec50a8435e5820d82
+'''
