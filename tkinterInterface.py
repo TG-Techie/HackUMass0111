@@ -6,6 +6,10 @@ import os
 
 import scanner
 
+class frame(tk.Frame):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, height = 150, width = 300, **kwargs)
 
 class User:
 
@@ -50,12 +54,11 @@ class Message:
         self.recipient = recipient
         self.timeStamp = datetime.now()
 
-    def __repr__(self):
-        s = str(self.sender.userName) + "\n"
-        s += str(self.recipient.userName) + "\n ----- \n"
-        s += self.message + "\n ----- \n"
-        s += str(self.timeStamp) + "\n"
-        return s
+    def __str__(self):
+        return  str(self.sender.username) + " ->" + str(self.recipient.username)\
+        +'@'+str(self.timeStamp).split(' ')[1].split('.')[0]+':\n'\
+        +self.message + "\n ----- \n"
+
 
 
 class OptIn(tk.Tk):
@@ -91,16 +94,16 @@ class OptIn(tk.Tk):
         self.users[username] = password
         self.usersObject[username] = User(username, password)
 
-    def switch_frame(self, frame_class, args = []):
+    def switch_frame(self, frame_class, args  = []):
 
         """Destroys current frame and replaces it with a new one."""
         if len(args) == 0 or frame_class == DashboardScreen:
             new_frame = frame_class(self)
         else:
-            if frame_class == LoginScreen:
-                new_frame = frame_class(self, args[0], args[1], args[2])
-            elif frame_class == SignedUpScreen:
-                new_frame = frame_class(self, args[0], args[1], args[2])
+            #if frame_class == LoginScreen:
+                new_frame = frame_class(self, *args)
+            #elif frame_class == SignedUpScreen:
+                #new_frame = frame_class(self, args[0], args[1], args[2])
         if self._frame is not None:
             self._frame.destroy()
 
@@ -116,11 +119,11 @@ class OptIn(tk.Tk):
 """
 
 
-class LoginScreen(tk.Frame):
+class LoginScreen(frame):
     # define some states
 
     def __init__(self, controller, loggedIn=False, wrongpass=False, accountNotFound=False):
-        tk.Frame.__init__(self, controller)
+        frame.__init__(self, controller)
         #State variables
         self.loggedIn = loggedIn #This happens when 1.password is wrong 2.havent logged in yet
         self.wrongpass = wrongpass
@@ -134,11 +137,11 @@ class LoginScreen(tk.Frame):
             """SET UP"""
             label = tk.Label(self, text = "WELCOME TO OPTIN")
             label.pack()
-            topFrame = tk.Frame(self)
+            topFrame = frame(self)
             topFrame.pack(side = "top")
-            middleFrame = tk.Frame(self)
+            middleFrame = frame(self)
             middleFrame.pack()
-            bottomFrame = tk.Frame(self)
+            bottomFrame = frame(self)
             bottomFrame.pack(side = "bottom")
 
             """LOG IN INFO"""
@@ -211,9 +214,9 @@ class LoginScreen(tk.Frame):
         return
 
 
-class SignedUpScreen(tk.Frame):
+class SignedUpScreen(frame):
     def __init__(self, controller, signedUp=False, wrongpass=False, existed = False):
-        tk.Frame.__init__(self, controller)
+        frame.__init__(self, controller)
         #State variables
         self.signedUp = signedUp #This happens when 1.password is wrong 2.havent logged in yet
         self.unmatched = wrongpass
@@ -226,11 +229,11 @@ class SignedUpScreen(tk.Frame):
             """SET UP"""
             label = tk.Label(self, text = "WELCOME TO OPTIN")
             label.pack()
-            topFrame = tk.Frame(self)
+            topFrame = frame(self)
             topFrame.pack(side = "top")
-            middleFrame = tk.Frame(self)
+            middleFrame = frame(self)
             middleFrame.pack()
-            bottomFrame = tk.Frame(self)
+            bottomFrame = frame(self)
             bottomFrame.pack(side = "bottom")
 
             """LOG IN INFO"""
@@ -288,19 +291,19 @@ class SignedUpScreen(tk.Frame):
                 json.dump(self.controller.users, jsonFile)
             self.controller.switch_frame(DashboardScreen)
 
-class DashboardScreen(tk.Frame):
+class DashboardScreen(frame):
     #something else, you get the idea
     # so the point of extending Screen that Screen kinda acts as an interface, and I feel like I will want to do something
     # collectively with a Screen array or something. But even if not, it just feels more comfortable and structured to do
     def __init__(self, controller):
-        tk.Frame.__init__(self)
+        frame.__init__(self)
         self.controller = controller
         #State variables
         self.draw()
     def draw(self):
-        topFrame = tk.Frame(self)
+        topFrame = frame(self)
         topFrame.pack(side = "top")
-        bottomFrame = tk.Frame(self)
+        bottomFrame = frame(self)
         bottomFrame.pack(side = "bottom")
 
         print("blah" + str(self.controller.currentUser.username))
@@ -316,14 +319,14 @@ class DashboardScreen(tk.Frame):
     def qrPressed(self):
         self.controller.switch_frame(qrFrame)
 
-class FriendsScreen(tk.Frame):
+class FriendsScreen(frame):
     def __init__(self, controller):
-        tk.Frame.__init__(self)
+        super().__init__()
         self.controller = controller
         self.draw()
 
     def friend_exchange(self):
-        scanner.exchange(self.controller.currentUser.username, self.updateFriend_main)
+        scanner.exchange(self.controller.currentUser.username, self.updateFriend)
         self.controller.switch_frame(FriendsScreen)
 
     def draw(self):
@@ -332,7 +335,7 @@ class FriendsScreen(tk.Frame):
 
         friendsList = self.controller.currentUser.friendsList
         count = 0
-        topFrame = tk.Frame(self)
+        topFrame = frame(self)
         topFrame.pack(side = "top")
         for friendname, friend in friendsList.items():
             button = tk.Button(topFrame, text = friendname, command = lambda : self.controller.switch_frame(MessageScreen, (friend,)))
@@ -340,7 +343,7 @@ class FriendsScreen(tk.Frame):
             count += 1
 
     def updateFriend(self, otherUserName, otherKey):
-        b = Button(text = "Dashboard", command = lambda: self.controller.switch_frame(DashboardScreen))
+        b = tk.Button(self, text = "Dashboard", command = lambda: self.controller.switch_frame(DashboardScreen))
         b.pack()
         friendsList = self.controller.currentUser.friendsList
         for friend in friendsList:
@@ -349,34 +352,63 @@ class FriendsScreen(tk.Frame):
                 self.controller.saveInfo()
                 return
         friend = self.controller.usersObject.get(otherUserName)
+        if friend == None:
+            raise Exception('User specified does not exist')
         self.controller.currentUser.addFriend(friend)
 
-class MessageScreen(tk.Frame):
+class MessageScreen(frame):
     def __init__(self, controller, friend):
-        tk.Frame.__init__(self)
+        super().__init__()
         self.controller = controller
         self.friend = friend
-        self.draw()
+        self.draw(friend)
+
     def draw(self, friend):
-        topFrame = tk.Frame(self)
+        print("!MessageScreen draw func start")
+
+        topFrame = frame(self)
         topFrame.pack(side = "top")
         currentUser = self.controller.currentUser
+
+        if self.friend.username not in currentUser.messages.keys():
+            currentUser.messages[self.friend.username] = []
         messageList = currentUser.messages[self.friend.username]
+
+        print(id(messageList))
         for message in messageList:
-            label = tk.Label(self, text = message)
+            print('messages foiund and packing:', str(message) )
+            label = tk.Label(self, text = str(message))
             label.pack()
 
-        newMessage = tk.Label(topFrame, text = "Password")
+        newMessage = tk.Label(topFrame, text = "Message")
         newMessage.pack()
 
         newMessageEntry = tk.Entry(topFrame)
         newMessageEntry.pack()
-        newMessageObject = Message(message, currentUser, friend)
 
-        sendButton = tk.Button( text = "SEND", command = lambda: self.send(newMessageObject, friend))
+
+
+
+        def send():
+            newMessageObject = Message(newMessageEntry.get(), currentUser, friend)
+            print('newMessageObject\n', newMessageObject)
+
+            #adds msg to current usr's list
+            #self.controller.currentUser.messages.get(friend.username, []).append(newMessageObject)
+            messageList.append(newMessageObject)
+
+            self.send(newMessageObject, friend)
+            self.controller.switch_frame(MessageScreen, [self.friend])
+
+        sendButton = tk.Button(self, text = "SEND", command = send )
         sendButton.pack()
 
-    def plaintext_to_cipherbytes(plaintext, otp):
+        b = tk.Button(self, text = "Dashboard", command = lambda: self.controller.switch_frame(DashboardScreen))
+        b.pack()
+        print("!MessageScreen draw func END")
+
+
+    def plaintext_to_cipherbytes(self, plaintext, otp):
         plainbytes = plaintext.encode('ascii')
         len_plainbytes: int = len(plainbytes)
         if len_plainbytes > len(otp):
@@ -393,12 +425,12 @@ class MessageScreen(tk.Frame):
                 carry = 0
             cipherbytes[i] = sumbyte
         cipherbytes[len_plainbytes] = carry
-        return (cipherbytes, otp[len_plainbytes:])
+        return cipherbytes
 
 
     def send(self, message, friend):
-        print("Sending message: " + message)
-        print("Message sent to server as: " + self.plaintext_to_cipherbytes(message, os.urandom(len(message))).decrypt('utf-8'))
+        print("Sending message:\n'''" + str(message),"'''")
+        #print("Message sent to server as: " + self.plaintext_to_cipherbytes(message.message, os.urandom(len(str(message)))).decode('utf-8'))
 
 
 
