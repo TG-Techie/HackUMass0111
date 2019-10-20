@@ -67,7 +67,7 @@ class OptIn(tk.Tk):
         self._frame = None
         self.switch_frame(LoginScreen)
         self.currentUser = None;
-
+        self.recipient = None
     def saveInfo(self):
         with open("users.json", "w") as jsonFile:
             json.dump(self.controller.users, jsonFile)
@@ -325,8 +325,8 @@ class FriendsScreen(tk.Frame):
         self.currentUser.addFriend(friend)
 
 class MessageScreen(tk.Frame):
-    pass
-
+    def __init__(self, friend):
+        pass
 if __name__ == "__main__":
     app = OptIn()
     app.mainloop()
