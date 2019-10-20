@@ -3,8 +3,6 @@ import tkinter as tk
 from datetime import datetime
 import json
 
-import scanner
-
 class User:
 
     def __init__(self, userName, password):
@@ -60,7 +58,6 @@ class OptIn(tk.Tk):
 
     def __init__(self):
         tk.Tk.__init__(self)
-
         with open("users.json", "r") as jsonFile:
             self.users = json.load(jsonFile)
 
@@ -70,15 +67,6 @@ class OptIn(tk.Tk):
         self._frame = None
         self.switch_frame(LoginScreen)
         self.currentUser = None;
-        self.recipient = None
-    def saveInfo(self):
-        with open("users.json", "w") as jsonFile:
-            json.dump(self.controller.users, jsonFile)
-
-        self.users = dict()
-
-        self._frame = None
-        self.switch_frame(SignedUpScreen)
 
 
     def getUsers(self):
@@ -103,14 +91,6 @@ class OptIn(tk.Tk):
 
         self._frame = new_frame
         self._frame.pack()
-"""
-    def mainloop(self):
-        while True:
-            tk.update_idletasks()
-            tk.update_tasks()
-            for func in self.func_loops.items():
-                func()
-"""
 
 
 class LoginScreen(tk.Frame):
@@ -323,28 +303,21 @@ class FriendsScreen(tk.Frame):
         self.draw()
 
     def draw(self):
-        friendsList = self.controller.currentUser.friendsList
-        count = 0
-        topFrame = tk.Frame(self)
-        topFrame.pack(side = "top")
-        for friend in friendsList:
-            button = tk.Button(topFrame, text = friend.username, command = lambda : self.controller.switch_frame(MessageScreen, friend))
-            button.grid(row =count, column = 1)
-            count += 1
+        friendsList = self.controller.currentUser.friends
+        #for username, friendsList
     def updateFriend_main(self, otherUserName, otherKey):
-        friendsList = self.controller.currentUser.friendsList
-        for friend in friendsList:
+        friendList = self.currentUser.friendsList
+        for friend in friendList:
             if friend.username == otherUserName:
                 friend.qr = otherKey
                 ##NEED TO SAVE ALL DATA EVERY TIME WE UPDATE INFO including signUp, updateFriend
-                self.controller.saveInfo()
                 return
         friend = self.controller.usersObject.get(otherUserName)
         self.currentUser.addFriend(friend)
 
 class MessageScreen(tk.Frame):
-    def __init__(self, friend):
-        pass
+    pass
+
 if __name__ == "__main__":
     app = OptIn()
     app.mainloop()
