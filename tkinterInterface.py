@@ -193,7 +193,7 @@ class SignedUpScreen(tk.Frame):
         try:
             name = controller.loged_in_username
         except:
-            name = 'ANON!?!?'
+            name = "ANON"
         b = tk.Button(text="add contact", command = lambda *args: scanner.exchange(name) )
         b.pack()
 

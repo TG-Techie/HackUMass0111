@@ -122,9 +122,9 @@ def exchange(username, max_msgs_power = 5, switching_time = 1):
 	qr_front = "[OptIn]"
 	qr_end_front = '[OptInEND]'
 
-	first_header = qr_front+"[_____]["+username+"]"#_____ will be replaced
+	first_header = qr_front+"[_____,'"+username+"']"#_____ will be replaced
 
-	std_header = qr_front+'pos='+('_'*max_msgs_power)
+	std_header = qr_front+'['+('_'*max_msgs_power)+']'
 
 	headers = [first_header] #messages
 	while len(headers) < num_qrs:
@@ -153,6 +153,8 @@ def exchange(username, max_msgs_power = 5, switching_time = 1):
 	found = []
 	should_continue = True
 
+	#my_key = my_key.decode("unicode")
+	print('my_key', my_key)
 
 	global output
 	output = qr_display()
@@ -193,14 +195,29 @@ def exchange(username, max_msgs_power = 5, switching_time = 1):
 				if qr.startswith(qr_front):
 					if qr not in found:
 						found.append(qr)
+						print(qr)
 				elif qr.startswith(qr_end_front):
 					transmition_complete_confirmed = True
 
 
 		if transmition_complete_confirmed and end_qr_posted and (len(found) == num_qrs):
+			proced_qrs = [qr.replace(qr_front, '').split('|') for qr in found]
+			print(proced_qrs)
+
+			proced_qrs.sort(key = lambda item: eval(item[0])[0])
+
+			other_username = eval(proced_qrs[0][0])[1]
+			other_key = ''
+			for pqr in proced_qrs:
+				print(pqr[1])
+				other_key += pqr[1]
+
+			print(other_key)
+			print(proced_qrs)
+
 
 			output.destroy()
 			break
-
+#b'{\xd5\xe5\xe1\x97l!\x16/nB\xe0\x1db\x95\xf6A\x1f\xeb\x15\xa7HXcc\x96O\xd4\x06j~/\xb9\xe5\xc15\t\xba\xc6\x8f\xb4m\n5\x12Er9$\xe4H\x85\xf8-\x90\x05rV\x8d\x00\xfd\x03\xfd@\xebJ\xf8_\xa2L@\xbe\xfav\xf7+8aq\x92\xbe\x88\xae\xa5\xc5)\xb2/\xe0\x0c\xcb\x07\xad\xa6\x18t\x1c\xc79\xde={\xc3E[\x82\x03|\xe0\x9a\xd3`_\xcd\x1e1\x82u\x83;\x0bUw\xb2\xc1q\x992'
 
 #exchange('joanh', tk.Tk(), print)
