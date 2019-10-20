@@ -2,6 +2,7 @@ import re
 import tkinter as tk
 from datetime import datetime
 import json
+import os
 
 import scanner
 
@@ -197,9 +198,10 @@ class LoginScreen(tk.Frame):
             if users.get(username) == password:
                 self.loggedIn = True
                 self.controller.currentUser = self.controller.usersObject.get(username)
-                print(self.controller.currentUser.username)
-                args = [self.loggedIn, self.wrongpass, self.accountNotFound]
-                self.controller.switch_frame(DashboardScreen, args)
+                self.controller.addUser(username, password)
+                with open("users.json", "w") as jsonFile:
+                    json.dump(self.controller.users, jsonFile)
+                self.controller.switch_frame(DashboardScreen)
             else:
                 self.wrongpass = True
                 args = [self.loggedIn, self.wrongpass, self.accountNotFound]
@@ -337,25 +339,70 @@ class FriendsScreen(tk.Frame):
             button.grid(row =count, column = 1)
             count += 1
 
+    def updateFriend(self, otherUserName, otherKey):
         b = Button(text = "Dashboard", command = lambda: self.controller.switch_frame(DashboardScreen))
         b.pack()
-
-
-
-    def updateFriend_main(self, otherUserName, otherKey):
         friendsList = self.controller.currentUser.friendsList
         for friend in friendsList:
             if friend.username == otherUserName:
                 friend.qr = otherKey
-                ##NEED TO SAVE ALL DATA EVERY TIME WE UPDATE INFO including signUp, updateFriend
                 self.controller.saveInfo()
                 return
         friend = self.controller.usersObject.get(otherUserName)
         self.controller.currentUser.addFriend(friend)
 
 class MessageScreen(tk.Frame):
-    def __init__(self, friend):
-        pass
+    def __init__(self, controller, friend):
+        tk.Frame.__init__(self)
+        self.controller = controller
+        self.friend = friend
+        self.draw()
+    def draw(self, friend):
+        topFrame = tk.Frame(self)
+        topFrame.pack(side = "top")
+        currentUser = self.controller.currentUser
+        messageList = currentUser.messages[self.friend.username]
+        for message in messageList:
+            label = tk.Label(self, text = message)
+            label.pack()
+
+        newMessage = tk.Label(topFrame, text = "Password")
+        newMessage.pack()
+
+        newMessageEntry = tk.Entry(topFrame)
+        newMessageEntry.pack()
+        newMessageObject = Message(message, currentUser, friend)
+
+        sendButton = tk.Button( text = "SEND", command = lambda: self.send(newMessageObject, friend))
+        sendButton.pack()
+
+    def plaintext_to_cipherbytes(plaintext, otp):
+        plainbytes = plaintext.encode('ascii')
+        len_plainbytes: int = len(plainbytes)
+        if len_plainbytes > len(otp):
+            raise Exception('Not enough one-time pad left to encrypt')
+        otp_part = otp[0:len_plainbytes]
+        cipherbytes = bytearray(len_plainbytes + 1)
+        carry = 0
+        for i in range(len_plainbytes):
+            sumbyte = plainbytes[i] + otp_part[i] + carry
+            if sumbyte >= 256:
+                carry = 1
+                sumbyte = sumbyte % 256
+            else:
+                carry = 0
+            cipherbytes[i] = sumbyte
+        cipherbytes[len_plainbytes] = carry
+        return (cipherbytes, otp[len_plainbytes:])
+
+
+    def send(self, message, friend):
+        print("Sending message: " + message)
+        print("Message sent to server as: " + self.plaintext_to_cipherbytes(message, os.urandom(len(message))).decrypt('utf-8'))
+
+
+
+
 if __name__ == "__main__":
     app = OptIn()
     app.mainloop()
