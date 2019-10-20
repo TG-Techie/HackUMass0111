@@ -77,7 +77,9 @@ class OptIn(tk.Tk):
         return self.usersObject
     def addUser(self, username, password):
         self.users[username] = password
-        self.usersObject[username] = User(username, password)
+        newUser = User(username, password)
+        self.usersObject[username] = newUser
+        return newUser
     def switch_frame(self, frame_class, args = []):
 
         """Destroys current frame and replaces it with a new one."""
@@ -177,8 +179,11 @@ class LoginScreen(tk.Frame):
             if users.get(username) == password:
                 self.loggedIn = True
                 self.controller.currentUser = self.controller.usersObject.get(username)
-                print(self.controller.currentUser.username)
-                args = [self.loggedIn, self.wrongpass, self.accountNotFound]
+
+                self.controller.addUser(username, password)
+                with open("users.json", "w") as jsonFile:
+                    json.dump(self.controller.users, jsonFile)
+                self.controller.switch_frame(DashboardScreen)
                 self.controller.switch_frame(DashboardScreen, args)
             else:
                 self.wrongpass = True
@@ -261,7 +266,8 @@ class SignedUpScreen(tk.Frame):
             self.controller.switch_frame(LoginScreen, args)
             return
         else:
-            self.controller.addUser(username, password)
+            self.controller.currentUser = self.controller.addUser(username, password)
+            print(self.controller.currentUser.username)
             with open("users.json", "w") as jsonFile:
                 json.dump(self.controller.users, jsonFile)
             self.controller.switch_frame(DashboardScreen)
