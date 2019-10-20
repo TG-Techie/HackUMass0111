@@ -5,6 +5,7 @@ import json
 
 import scanner
 
+
 class User:
 
     def __init__(self, userName, password):
@@ -16,7 +17,7 @@ class User:
         self.qr = None
 
     def addFriend(self, otherUser):
-        self.friendsList.append(otherUser)
+        self.friendsList[otherUser.username] = otherUser
 
     def removeFriend(self, otherUser):
 
@@ -88,6 +89,7 @@ class OptIn(tk.Tk):
     def addUser(self, username, password):
         self.users[username] = password
         self.usersObject[username] = User(username, password)
+
     def switch_frame(self, frame_class, args = []):
 
         """Destroys current frame and replaces it with a new one."""
@@ -270,8 +272,8 @@ class SignedUpScreen(tk.Frame):
 
             loginButton = tk.Button(topFrame, text = "I Opt In!", command = lambda: self.loggedInPressed(usernameEntry.get(), passwordEntry.get()))
             loginButton.grid(row = 4, stick = "E")
-
         return
+
     def loggedInPressed(self, username, password):
 
         if ((username is None) or (password is None)):
@@ -304,10 +306,8 @@ class DashboardScreen(tk.Frame):
         label.pack(side = "top")
 
         button1 = tk.Button(topFrame, text = "List of friends", fg = "red", command = lambda: self.listOfFriendsPressed())
-        button2 = tk.Button(topFrame, text = "Add Contact", fg = "green", command = lambda: scanner.exchange(self.controller.currentUser.username, self))
 
         button1.pack(side = "left")
-        button2.pack(side = "left")
 
     def listOfFriendsPressed(self):
         self.controller.switch_frame(FriendsScreen)
@@ -320,15 +320,28 @@ class FriendsScreen(tk.Frame):
         self.controller = controller
         self.draw()
 
+    def friend_exchange(self):
+        scanner.exchange(self.controller.currentUser.username, self.updateFriend_main)
+        self.controller.switch_frame(FriendsScreen)
+
     def draw(self):
+        button2 = tk.Button(self, text = "Add Contact", fg = "green", command = self.friend_exchange)
+        button2.pack(side = "left")
+
         friendsList = self.controller.currentUser.friendsList
         count = 0
         topFrame = tk.Frame(self)
         topFrame.pack(side = "top")
-        for friend in friendsList:
-            button = tk.Button(topFrame, text = friend.username, command = lambda : self.controller.switch_frame(MessageScreen, friend))
+        for friendname, friend in friendsList.items():
+            button = tk.Button(topFrame, text = friendname, command = lambda : self.controller.switch_frame(MessageScreen, (friend,)))
             button.grid(row =count, column = 1)
             count += 1
+
+        b = Button(text = "Dashboard", command = lambda: self.controller.switch_frame(DashboardScreen))
+        b.pack()
+
+
+
     def updateFriend_main(self, otherUserName, otherKey):
         friendsList = self.controller.currentUser.friendsList
         for friend in friendsList:
@@ -338,7 +351,7 @@ class FriendsScreen(tk.Frame):
                 self.controller.saveInfo()
                 return
         friend = self.controller.usersObject.get(otherUserName)
-        self.currentUser.addFriend(friend)
+        self.controller.currentUser.addFriend(friend)
 
 class MessageScreen(tk.Frame):
     def __init__(self, friend):
