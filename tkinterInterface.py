@@ -193,7 +193,7 @@ class SignedUpScreen(tk.Frame):
         try:
             name = controller.loged_in_username
         except:
-            name = "ANON"
+            name = "foo"
         b = tk.Button(text="add contact", command = lambda *args: scanner.exchange(name) )
         b.pack()
 
@@ -205,7 +205,6 @@ class DashboardScreen(tk.Frame):
 
 
         #w.pack()
-
 
 if __name__ == "__main__":
     app = OptIn()
