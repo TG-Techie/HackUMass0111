@@ -87,9 +87,7 @@ class OptIn(tk.Tk):
         return self.usersObject
     def addUser(self, username, password):
         self.users[username] = password
-        newUser = User(username, password)
-        self.usersObject[username] = newUser
-        return newUser
+        self.usersObject[username] = User(username, password)
     def switch_frame(self, frame_class, args = []):
 
         """Destroys current frame and replaces it with a new one."""
@@ -197,11 +195,8 @@ class LoginScreen(tk.Frame):
             if users.get(username) == password:
                 self.loggedIn = True
                 self.controller.currentUser = self.controller.usersObject.get(username)
-
-                self.controller.addUser(username, password)
-                with open("users.json", "w") as jsonFile:
-                    json.dump(self.controller.users, jsonFile)
-                self.controller.switch_frame(DashboardScreen)
+                print(self.controller.currentUser.username)
+                args = [self.loggedIn, self.wrongpass, self.accountNotFound]
                 self.controller.switch_frame(DashboardScreen, args)
             else:
                 self.wrongpass = True
@@ -284,8 +279,7 @@ class SignedUpScreen(tk.Frame):
             self.controller.switch_frame(LoginScreen, args)
             return
         else:
-            self.controller.currentUser = self.controller.addUser(username, password)
-            print(self.controller.currentUser.username)
+            self.controller.addUser(username, password)
             with open("users.json", "w") as jsonFile:
                 json.dump(self.controller.users, jsonFile)
             self.controller.switch_frame(DashboardScreen)
@@ -310,7 +304,7 @@ class DashboardScreen(tk.Frame):
         label.pack(side = "top")
 
         button1 = tk.Button(topFrame, text = "List of friends", fg = "red", command = lambda: self.listOfFriendsPressed())
-        button2 = tk.Button(topFrame, text = "Your QR", fg = "green", command = lambda: self.qrPressed())
+        button2 = tk.Button(topFrame, text = "Add Contact", fg = "green", command = lambda: scanner.exchange(self.controller.currentUser.username, self))
 
         button1.pack(side = "left")
         button2.pack(side = "left")
@@ -319,8 +313,6 @@ class DashboardScreen(tk.Frame):
         self.controller.switch_frame(FriendsScreen)
     def qrPressed(self):
         self.controller.switch_frame(qrFrame)
-class qrFrame(tk.Frame):
-    pass
 
 class FriendsScreen(tk.Frame):
     def __init__(self, controller):
