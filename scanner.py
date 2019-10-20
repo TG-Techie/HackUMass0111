@@ -9,7 +9,7 @@ import random
 import cv2
 import bitmap
 
-num_qrs_pre_msg = 12
+num_qrs_pre_msg = 1
 
 def scan_for_qrs():
 	"""
@@ -20,7 +20,7 @@ def scan_for_qrs():
 	#ap.add_argument("-o", "--output", type=str, default="barcodes.csv",
 	#	help="path to output CSV file containing barcodes")
 	#args = vars(ap.parse_args())
-
+	print('scanning')
 	vs = VideoStream(src=0).start()
 	#while True:
 		# grab the frame from the threaded video stream and resize it to
@@ -38,7 +38,7 @@ def scan_for_qrs():
 
 		# draw the barcode data and barcode type on the image
 		text = "{}".format(barcodeData)
-		print(text)
+		print('TG! scan_for_qr:', text)
 		#print(text)
 		out.append(text)
 	return out
@@ -46,7 +46,7 @@ def scan_for_qrs():
 	vs.stop()
 
 
-def exchange(username, canvas, max_msgs_power = 5, switching_time = 1):
+def exchange(username, canvas, max_msgs_power = 5, switching_time = 5):
 	"""
 	Desc: a func that transmits and reads qrcodes to transmit two parts of a one time pad. returns a tuple
 			with the other's username, then the entire key (as a bytes object);
@@ -60,9 +60,9 @@ def exchange(username, canvas, max_msgs_power = 5, switching_time = 1):
 	qr_front = "[OptIn]"
 	qr_end_front = '[OptInEND]'
 
-	first_header = qr_front+"pos=0, username='"+username#_____ will be replaced
+	first_header = qr_front+"[_____]["+username+"]"#_____ will be replaced
 
-	std_header = qr_front+'pos='+'_'*max_msgs_power
+	std_header = qr_front+'pos='+('_'*max_msgs_power)
 
 	headers = [first_header] #messages
 	while len(headers) < num_qrs:
@@ -93,20 +93,23 @@ def exchange(username, canvas, max_msgs_power = 5, switching_time = 1):
 
 	while should_continue:
 		if (len(found) == num_qrs) and not end_qr_posted:
-			bitmap.write_bitmap_to_canvas(bitmap.string_to_bitmap(qr_end_front)[1], canvas)
+			bitmap.write_bitmap_to_canvas(bitmap.string_to_bitmap(qr_end_front), canvas)
+			#show_new_qr(bitmap.string_to_bitmap(qr_end_front))
 			end_qr_posted = True
 		if transmition_complete_confirmed == False:
 			if (time.monotonic() - last_time_qr_switched) > switching_time:
 
+				print('puttin new qr on screen')
+				#show_new_qr(qrs[0])
 				bitmap.write_bitmap_to_canvas(qrs[0], canvas)
 
 				qrs.append(qrs.pop(0))
 				last_time_qr_switched = time.monotonic()
 
-		if len(found) < num_qrs:
+		#if not transmition_complete_confirmed:
 			#raw_found_qrs =
 			for qr in scan_for_qrs():
-				if qr.starswith(qr_front):
+				if qr.startswith(qr_front):
 					if qr not in found:
 						found.append(qr)
 				elif qr.startswith(qr_end_front):
@@ -114,11 +117,24 @@ def exchange(username, canvas, max_msgs_power = 5, switching_time = 1):
 
 		if transmition_complete_confirmed and end_qr_posted:
 			break
-			
-	print(found)
 
+	print('TG! exchange:',found)
 
+from tkinter import *
 
+class root(Tk):
+	def __init__(self):
+		Tk.__init__(self)
 
+		w = Canvas(self, width=200, height=100)
+		w.pack()
 
-exchange('JONAHYM', 'foe canvas here')
+		#a = w.create_rectangle(0, 0, 70, 70, fill="red", outline="")
+		#w.move(a, 20, 20)
+
+		self.canv = w
+
+		b = Button(text = 'go', command = lambda *args, **kwargs:[ exchange('JONAHYM', w)])
+		b.pack()
+
+root().mainloop()
