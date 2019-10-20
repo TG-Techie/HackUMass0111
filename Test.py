@@ -303,7 +303,7 @@ class FriendsScreen(tk.Frame):
         self.draw()
 
     def draw(self):
-        friendsList = self.controller.friends
+        friendsList = self.controller.currentUser.friends
         #for username, friendsList
     def updateFriend_main(self, otherUserName, otherKey):
         friendList = self.currentUser.friendsList

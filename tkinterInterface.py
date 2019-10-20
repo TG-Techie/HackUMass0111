@@ -68,7 +68,9 @@ class OptIn(tk.Tk):
         self.switch_frame(LoginScreen)
         self.currentUser = None;
 
-
+    def saveInfo(self):
+        with open("users.json", "w") as jsonFile:
+            json.dump(self.controller.users, jsonFile)
     def getUsers(self):
         return self.users
     def getUsersObject(self):
@@ -301,16 +303,22 @@ class FriendsScreen(tk.Frame):
         tk.Frame.__init__(self)
         self.controller = controller
         self.draw()
-
+    def drawButton(self, friend):
+        b = tk.Button(text = friend.username, command = lambda : self.controller.switch_frame(MessageScreen, friend))
+        b.pack()
+        return b
     def draw(self):
-        friendsList = self.controller.friends
-        #for username, friendsList
+        friendsList = self.controller.currentUser.friendsList
+        for friend in friendsList:
+            button = self.drawButton(friend)
+            button.pack()
     def updateFriend_main(self, otherUserName, otherKey):
-        friendList = self.currentUser.friendsList
-        for friend in friendList:
+        friendsList = self.controller.currentUser.friendsList
+        for friend in friendsList:
             if friend.username == otherUserName:
                 friend.qr = otherKey
                 ##NEED TO SAVE ALL DATA EVERY TIME WE UPDATE INFO including signUp, updateFriend
+                self.controller.saveInfo()
                 return
         friend = self.controller.usersObject.get(otherUserName)
         self.currentUser.addFriend(friend)
