@@ -10,7 +10,7 @@ import cv2
 import bitmap
 import tkinter as tk
 
-num_qrs_pre_msg = 2
+num_qrs_pre_msg = 5
 
 import threading
 
@@ -111,7 +111,7 @@ def scan_for_qrs():
 def exchange(username, max_msgs_power = 5, switching_time = 1):
 	"""
 	Desc: a func that transmits and reads qrcodes to transmit two parts of a one time pad. returns a tuple
-			with the other's username, then the entire key (as a bytes object);
+			with the other's username, then the entire key (as a bytearray);
 	arg username: a string that represents the username to transmit;
 	arg key: the key to transmit;
 	arg canvas: a tkinter canvas that will be drawn on to display the bitmap;
@@ -133,15 +133,16 @@ def exchange(username, max_msgs_power = 5, switching_time = 1):
 	#if len(headers) > 10**max_msgs_power:
 	#	return exchange(username, canvas, max_msgs_power = max_msgs_power + 1, switching_time = switching_time)
 
-	my_key = bytes()
+	my_key = bytearray()
 	qrs = []
 	for index, header in enumerate(headers):
 		pos = str(index)
 		#while len(pos) < max_msgs_power:
 			#pos = '0'+pos
 
-		qr_tup = bitmap.string_and_otp_bitmap(header.replace('_'*max_msgs_power, pos), '|', 64)
-		my_key += qr_tup[0]
+		qr_tup = bitmap.string_and_otp_bitmap(header.replace('_'*max_msgs_power, pos), '|', 48)
+		#bytearray().join([my_key, qr_tup[0]])
+		my_key.extend(qr_tup[0])
 
 		qrs.append(qr_tup[1])
 
@@ -154,7 +155,7 @@ def exchange(username, max_msgs_power = 5, switching_time = 1):
 	should_continue = True
 
 	#my_key = my_key.decode("unicode")
-	print('my_key', my_key)
+	print('!!!!!!!!my_key', my_key)
 
 	global output
 	output = qr_display()
@@ -207,17 +208,30 @@ def exchange(username, max_msgs_power = 5, switching_time = 1):
 			proced_qrs.sort(key = lambda item: eval(item[0])[0])
 
 			other_username = eval(proced_qrs[0][0])[1]
-			other_key = ''
+			other_key = bytearray()
 			for pqr in proced_qrs:
+				#print(pqr[1], bytes(pqr[1].encode('ascii')))
+				#other_key += bytearray().join([pqr[1]])
 				print(pqr[1])
-				other_key += pqr[1]
+				other_key.extend(map(ord, pqr[1]))
 
 			print(other_key)
 			print(proced_qrs)
+			#print(bytes(other_key) == bytes(my_key))
 
+			master_key = bytearray()
 
+			if hash(username) > hash(other_username):
+				master_key.extend(my_key)
+				master_key.extend(other_key)
+			else:
+				master_key.extend(other_key)
+				master_key.extend(my_key)
+			print('\n'*5)
+			print('masterkey',master_key )
 			output.destroy()
 			break
+	return (other_username, master_key)
 #b'{\xd5\xe5\xe1\x97l!\x16/nB\xe0\x1db\x95\xf6A\x1f\xeb\x15\xa7HXcc\x96O\xd4\x06j~/\xb9\xe5\xc15\t\xba\xc6\x8f\xb4m\n5\x12Er9$\xe4H\x85\xf8-\x90\x05rV\x8d\x00\xfd\x03\xfd@\xebJ\xf8_\xa2L@\xbe\xfav\xf7+8aq\x92\xbe\x88\xae\xa5\xc5)\xb2/\xe0\x0c\xcb\x07\xad\xa6\x18t\x1c\xc79\xde={\xc3E[\x82\x03|\xe0\x9a\xd3`_\xcd\x1e1\x82u\x83;\x0bUw\xb2\xc1q\x992'
 
 #exchange('joanh', tk.Tk(), print)
