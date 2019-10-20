@@ -61,6 +61,9 @@ def write_bitmap_to_canvas(bitmap, w):
     bitmap_size = len(bitmap)
     w_width = w.info_width()
     w_height = w.info_height()
+    
+    canvas.create_rectangle(0, 0, w_width, w_height, fill="white", outline="")
+    
     x_offset = 0
     y_offset = 0
     w_size = 0
