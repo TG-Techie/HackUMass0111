@@ -9,6 +9,7 @@ import random
 import cv2
 import bitmap
 import tkinter as tk
+import gc
 
 num_qrs_pre_msg = 5
 
@@ -67,6 +68,8 @@ class qr_display(tk.Tk):
         nf = QRFrame(self, qr, label_text)
         if self._frame is not None:
             self._frame.destroy()
+        del self._frame
+        gc.collect()
         self._frame = nf
         self._frame.pack()
 
@@ -109,13 +112,11 @@ def scan_for_qrs():
     vs.stop()
 
 
-def exchange(username, accessor, max_msgs_power = 5, switching_time = .05):
+def exchange(username, update_friend, max_msgs_power = 5, switching_time = .05):
     """
-    Desc: a func that transmits and reads qrcodes to transmit two parts of a one time pad. returns a tuple
-            with the other's username, then the entire key (as a bytearray);
+    Desc: a func that transmits and reads qrcodes to transmit two parts of a one time pad. sets/updates new friend;
     arg username: a string that represents the username to transmit;
-    arg key: the key to transmit;
-    arg canvas: a tkinter canvas that will be drawn on to display the bitmap;
+    arg update_friend: function to update the username and key in that order;
     kwarg max_msgs_power: log base ten of the maximum number of msages that can be passed;
     """
     num_qrs = num_qrs_pre_msg
@@ -163,8 +164,6 @@ def exchange(username, accessor, max_msgs_power = 5, switching_time = .05):
     output = qr_display()
     def show_canvas(qr, label_text):
         global output
-        #output.destroy()
-        #output = qr_display()
         output.new_qr_frame(qr, label_text)
         output.update()
 
@@ -179,13 +178,13 @@ def exchange(username, accessor, max_msgs_power = 5, switching_time = .05):
             end_qr_posted = True
 
         if (transmition_complete_confirmed == False):
-            if (time.monotonic() - last_time_qr_switched) > switching_time:
-                if (len(found) < num_qrs):
-                    print('puttin new qr on screen')
-                    show_canvas(qrs[qr_index], 'outgoing: '+str(qr_index + 1)+'/'+str(len(qrs))+'|Total collected:'+str(len(found))+'/'+str(len(qrs)))
-                qr_index  += 1
-                qr_index %= len(qrs)
-                last_time_qr_switched = time.monotonic()
+                #if (time.monotonic() - last_time_qr_switched) > switching_time:
+            if (len(found) < num_qrs):
+                print('puttin new qr on screen')
+                show_canvas(qrs[qr_index], 'outgoing: '+str(qr_index + 1)+'/'+str(len(qrs))+'|Total collected:'+str(len(found))+'/'+str(len(qrs)))
+            qr_index  += 1
+            qr_index %= len(qrs)
+                #last_time_qr_switched = time.monotonic()
 
         #if not transmition_complete_confirmed:
             #raw_found_qrs =
@@ -227,11 +226,14 @@ def exchange(username, accessor, max_msgs_power = 5, switching_time = .05):
                 master_key.extend(my_key)
             print('\n'*5)
             print('masterkey',master_key )
+
+            update_friend(other_username, other_key)
+
             output.destroy()
             del output
             break
 
-    return (other_username, master_key)
+    #2return (other_username, master_key)
     #b'{\xd5\xe5\xe1\x97l!\x16/nB\xe0\x1db\x95\xf6A\x1f\xeb\x15\xa7HXcc\x96O\xd4\x06j~/\xb9\xe5\xc15\t\xba\xc6\x8f\xb4m\n5\x12Er9$\xe4H\x85\xf8-\x90\x05rV\x8d\x00\xfd\x03\xfd@\xebJ\xf8_\xa2L@\xbe\xfav\xf7+8aq\x92\xbe\x88\xae\xa5\xc5)\xb2/\xe0\x0c\xcb\x07\xad\xa6\x18t\x1c\xc79\xde={\xc3E[\x82\x03|\xe0\x9a\xd3`_\xcd\x1e1\x82u\x83;\x0bUw\xb2\xc1q\x992'
 
     #exchange('joanh', tk.Tk(), print)
