@@ -13,7 +13,7 @@ def binary_to_bitmap(data, write_svg=False):
         qr_code_svg = open('qr-code.svg', 'w')
         qr_code_svg.write(qr_code.to_svg_str(1))
         qr_code_svg.close()
-    
+
     return qr_code._modules
 
 def string_to_bitmap(string, write_svg=False):
@@ -58,14 +58,25 @@ def write_bitmap_to_canvas(bitmap, w):
     """
     Writes a bitmap to a Tkinter canvas for scanning purposes
     """
+<<<<<<< HEAD
     bitmap_size = len(bitmap)
     w_width = w.info_width()
     w_height = w.info_height()
+=======
+
+    bitmap_size = len(bitmap)
+    w_width = w.winfo_width()
+    w_height = w.winfo_height()
+
+    w.create_rectangle(0, 0, w_width, w_height, fill="white", outline="")
+
+>>>>>>> 3561c90d455611358774135ec50a8435e5820d82
     x_offset = 0
     y_offset = 0
     w_size = 0
     if w_width < w_height:
         w_size = w_width
+<<<<<<< HEAD
         y_offset = (w_height - w_width) / 2
     else:
         w_size = w_height
@@ -78,3 +89,22 @@ def write_bitmap_to_canvas(bitmap, w):
             else:
                 canvas.create_rectangle(x * rect_size + x_offset, y * rect_size + y_offset, (x + 1) * rect_size + x_offset, (y + 1) * rect_size + y_offset, fill="white", outline="")
 
+=======
+        y_offset = (w_height - w_width) // 2
+    else:
+        w_size = w_height
+        x_offset = (w_width - w_height) // 2
+    rect_size = w_size // bitmap_size
+    for y in range(bitmap_size):
+        for x in range(bitmap_size):
+            if bitmap[y][x]:
+                w.create_rectangle(x * rect_size + x_offset, y * rect_size + y_offset,
+                                            (x + 1) * rect_size + x_offset, (y + 1) * rect_size + y_offset,
+                                            fill="black", outline="")
+            else:
+                w.create_rectangle(x * rect_size + x_offset, y * rect_size + y_offset,
+                                            (x + 1) * rect_size + x_offset, (y + 1) * rect_size + y_offset,
+                                            fill="white", outline="")
+
+            w.after(20, write_bitmap_to_canvas)
+>>>>>>> 3561c90d455611358774135ec50a8435e5820d82
