@@ -303,15 +303,16 @@ class FriendsScreen(tk.Frame):
         tk.Frame.__init__(self)
         self.controller = controller
         self.draw()
-    def drawButton(self, friend):
-        b = tk.Button(text = friend.username, command = lambda : self.controller.switch_frame(MessageScreen, friend))
-        b.pack()
-        return b
+
     def draw(self):
         friendsList = self.controller.currentUser.friendsList
+        count = 0
+        topFrame = tk.Frame(self)
+        topFrame.pack(side = "top")
         for friend in friendsList:
-            button = self.drawButton(friend)
-            button.pack()
+            button = tk.Button(topFrame, text = friend.username, command = lambda : self.controller.switch_frame(MessageScreen, friend))
+            button.grid(row =count, column = 1)
+            count += 1
     def updateFriend_main(self, otherUserName, otherKey):
         friendsList = self.controller.currentUser.friendsList
         for friend in friendsList:
