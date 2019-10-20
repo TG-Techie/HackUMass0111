@@ -8,6 +8,8 @@ import time
 import random
 import cv2
 import bitmap
+import tkinter as tk
+
 
 num_qrs_pre_msg = 1
 
@@ -46,7 +48,7 @@ def scan_for_qrs():
 	vs.stop()
 
 
-def exchange(username, canvas, max_msgs_power = 5, switching_time = 5):
+def exchange(username, master, show_canvas, max_msgs_power = 5, switching_time = 1):
 	"""
 	Desc: a func that transmits and reads qrcodes to transmit two parts of a one time pad. returns a tuple
 			with the other's username, then the entire key (as a bytes object);
@@ -93,7 +95,9 @@ def exchange(username, canvas, max_msgs_power = 5, switching_time = 5):
 
 	while should_continue:
 		if (len(found) == num_qrs) and not end_qr_posted:
-			bitmap.write_bitmap_to_canvas(bitmap.string_to_bitmap(qr_end_front), canvas)
+			canvas = tk.canvas(master, width = 512, height = 512)
+			bitmap.write_bitmap_to_canvas(bitmap.string_to_bitmap(qr_end_front), canvas, write_svg=True)
+			show_canvas(canvas)
 			#show_new_qr(bitmap.string_to_bitmap(qr_end_front))
 			end_qr_posted = True
 		if transmition_complete_confirmed == False:
@@ -101,8 +105,9 @@ def exchange(username, canvas, max_msgs_power = 5, switching_time = 5):
 
 				print('puttin new qr on screen')
 				#show_new_qr(qrs[0])
-				bitmap.write_bitmap_to_canvas(qrs[0], canvas)
-
+				canvas = tk.canvas(master, width = 512, height = 512)
+				bitmap.write_bitmap_to_canvas(qrs[0], canvas,  write_svg=True)
+				show_canvas(canvas)
 				qrs.append(qrs.pop(0))
 				last_time_qr_switched = time.monotonic()
 
@@ -119,22 +124,3 @@ def exchange(username, canvas, max_msgs_power = 5, switching_time = 5):
 			break
 
 	print('TG! exchange:',found)
-
-from tkinter import *
-
-class root(Tk):
-	def __init__(self):
-		Tk.__init__(self)
-
-		w = Canvas(self, width=200, height=100)
-		w.pack()
-
-		#a = w.create_rectangle(0, 0, 70, 70, fill="red", outline="")
-		#w.move(a, 20, 20)
-
-		self.canv = w
-
-		b = Button(text = 'go', command = lambda *args, **kwargs:[ exchange('JONAHYM', w)])
-		b.pack()
-
-root().mainloop()
