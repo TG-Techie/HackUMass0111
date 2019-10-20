@@ -10,8 +10,67 @@ import cv2
 import bitmap
 import tkinter as tk
 
+num_qrs_pre_msg = 2
 
-num_qrs_pre_msg = 1
+import threading
+
+class QRFrame(tk.Frame):
+
+    def __init__(self, controller, bitmap):
+        super().__init__(controller)
+
+        canv = tk.Canvas(self, width =512, height = 512)
+        canv.pack()
+        w = canv
+
+        bitmap_size = len(bitmap)
+        w_width = 512
+        w_height = 512
+
+        a = w.create_rectangle(0, 0, w_width, w_height, fill="WHITE", outline="")
+        w.move(a, 20, 20)
+
+        x_offset = 0
+        y_offset = 0
+        w_size = 0
+        if w_width < w_height:
+            w_size = w_width
+            y_offset = (w_height - w_width) // 2
+        else:
+            w_size = w_height
+            x_offset = (w_width - w_height) // 2
+        rect_size = w_size // bitmap_size
+        for y in range(bitmap_size):
+            for x in range(bitmap_size):
+                if bitmap[y][x]:
+                    w.create_rectangle(x * rect_size + x_offset, y * rect_size + y_offset,
+                                                (x + 1) * rect_size + x_offset, (y + 1) * rect_size + y_offset,
+                                                fill="black", outline="")
+                else:
+                    w.create_rectangle(x * rect_size + x_offset, y * rect_size + y_offset,
+                                                (x + 1) * rect_size + x_offset, (y + 1) * rect_size + y_offset,
+                                                fill="white", outline="")
+
+class qr_display(tk.Tk):
+
+	def __init__(self):
+		super().__init__()
+		self.stay_alive = True
+		self._frame = None
+
+	def new_qr_frame(self, qr):
+		if self.stay_alive != True:
+			print('QUITING!!!!!!!')
+			self.quit()
+
+		nf = QRFrame(self, qr)
+		if self._frame is not None:
+		    self._frame.destroy()
+		self._frame = nf
+		self._frame.pack()
+
+
+
 
 def scan_for_qrs():
 	"""
@@ -40,15 +99,16 @@ def scan_for_qrs():
 
 		# draw the barcode data and barcode type on the image
 		text = "{}".format(barcodeData)
-		print('TG! scan_for_qr:', text)
+
 		#print(text)
 		out.append(text)
+	print('TG! scan_for_qr:', out)
 	return out
 
 	vs.stop()
 
 
-def exchange(username, show_canvas, max_msgs_power = 5, switching_time = 1):
+def exchange(username, max_msgs_power = 5, switching_time = 1):
 	"""
 	Desc: a func that transmits and reads qrcodes to transmit two parts of a one time pad. returns a tuple
 			with the other's username, then the entire key (as a bytes object);
@@ -93,22 +153,34 @@ def exchange(username, show_canvas, max_msgs_power = 5, switching_time = 1):
 	found = []
 	should_continue = True
 
+
+	global output
+	output = qr_display()
+	def show_canvas(qr):
+		global output
+		#output.destroy()
+		#output = qr_display()
+		output.new_qr_frame(qr)
+		output.update()
+
+
+	#thread.daemon = True
+
+
 	while should_continue:
-		if (len(found) == num_qrs) and not end_qr_posted:
+		print(len(found))
+		if (len(found) == num_qrs):
 			#canvas = tk.Canvas(master, width = 512, height = 512)
 			#bitmap.write_bitmap_to_canvas(bitmap.string_to_bitmap(qr_end_front), canvas)
 			#show_canvas(canvas)
 			show_canvas(bitmap.string_to_bitmap(qr_end_front))
 			#show_new_qr(bitmap.string_to_bitmap(qr_end_front))
 			end_qr_posted = True
-		if transmition_complete_confirmed == False:
+
+		if (transmition_complete_confirmed == False) or  (len(found) < num_qrs) :
 			if (time.monotonic() - last_time_qr_switched) > switching_time:
 
 				print('puttin new qr on screen')
-				#show_new_qr(qrs[0])
-				#canvas = tk.Canvas(master, width = 512, height = 512)
-				#bitmap.write_bitmap_to_canvas(qrs[0], canvas)
-				#show_canvas(canvas)
 				show_canvas(qrs[0])
 
 				qrs.append(qrs.pop(0))
@@ -117,15 +189,18 @@ def exchange(username, show_canvas, max_msgs_power = 5, switching_time = 1):
 		#if not transmition_complete_confirmed:
 			#raw_found_qrs =
 			for qr in scan_for_qrs():
+				print('in scn loop',qr)
 				if qr.startswith(qr_front):
 					if qr not in found:
 						found.append(qr)
 				elif qr.startswith(qr_end_front):
 					transmition_complete_confirmed = True
 
-		if transmition_complete_confirmed and end_qr_posted:
+
+		if transmition_complete_confirmed and end_qr_posted and (len(found) == num_qrs):
+
+			output.destroy()
 			break
 
-	print('TG! exchange:',found)
 
 #exchange('joanh', tk.Tk(), print)
