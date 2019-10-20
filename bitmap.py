@@ -40,8 +40,24 @@ def bitmap_to_repr(bitmap, black='[]', white='  ', eol='\n'):
 
 def otp_bitmap(size=2953, write_svg=False):
     """
+<<<<<<< HEAD:OptIn/bitmap.py
     Returns a tuple including a cryptographically random one time pad byte array
     and its correspinding QR Code pattern as a 2d matrix with True for white squares and Flase for black.
     """
     otp = os.urandom(size)
     return (otp, binary_to_bitmap(otp, write_svg))
+=======
+    Returns a tuple including a cryptographically secure one time pad byte array
+    and its QR Code bitmap.
+    """
+    otp = os.urandom(size)
+    return (otp, binary_to_bitmap(otp, write_svg))
+
+def string_and_otp_bitmap(string, endchar, size, write_svg=False):
+    """
+    Returns a tuple including a byte array containing first a string, ending character,
+    and a cryptographically secure one time pad and second its QR Code bitmap.
+    """
+    otp = os.urandom(size)
+    return (otp, binary_to_bitmap(bytearray().join([(string + endchar).encode('ascii'), otp]), write_svg))
+>>>>>>> fec2f158ed9c7aae95bb025e2ae2574b839a5f47:bitmap.py
