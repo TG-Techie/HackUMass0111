@@ -1,6 +1,7 @@
 import re
 import tkinter as tk
 from datetime import datetime
+import scanner
 
 class User:
 
@@ -58,9 +59,15 @@ class OptIn(tk.Tk):
     def __init__(self):
         tk.Tk.__init__(self)
         self.users = dict()
+        #FIXME loged_in_username
         self._frame = None
-        self.switch_frame(LoginScreen)
+        self.switch_frame(SignedUpScreen)
 
+    def new_qr_frame(self, qr):
+        nf = QRFrame(self, qr)
+        self._frame.destroy()
+        self._frame = nf
+        self._frame.pack()
 
     def getUsers(self):
         return self.users
@@ -174,14 +181,56 @@ class LoginScreen(tk.Frame):
 
 
 class SignedUpScreen(tk.Frame):
-    pass
+
+    def __init__(self, controller):
+        super().__init__(controller)
+
+        b = tk.Button(text="add contact", command = lambda *args: scanner.exchange(controller.loged_in_username, controller.new_qr_frame) )
+        b.pack()
+
 class DashboardScreen(tk.Frame):
     #something else, you get the idea
     # so the point of extending Screen that Screen kinda acts as an interface, and I feel like I will want to do something
     # collectively with a Screen array or something. But even if not, it just feels more comfortable and structured to do
     pass
-class QRCode(tk.Frame):
-    pass
+
+class QRFrame(tk.Frame):
+
+    def __init__(self, controller, bitmap):
+        super().__init__(controller)
+
+        canv = tk.Canvas(self, width =200, height = 100)
+        w = canv
+
+        bitmap_size = len(bitmap)
+        w_width = w.winfo_width()
+        w_height = w.winfo_height()
+
+        w.create_rectangle(0, 0, w_width, w_height, fill="white", outline="")
+
+        x_offset = 0
+        y_offset = 0
+        w_size = 0
+        if w_width < w_height:
+            w_size = w_width
+            y_offset = (w_height - w_width) // 2
+        else:
+            w_size = w_height
+            x_offset = (w_width - w_height) // 2
+        rect_size = w_size // bitmap_size
+        for y in range(bitmap_size):
+            for x in range(bitmap_size):
+                if bitmap[y][x]:
+                    w.create_rectangle(x * rect_size + x_offset, y * rect_size + y_offset,
+                                                (x + 1) * rect_size + x_offset, (y + 1) * rect_size + y_offset,
+                                                fill="black", outline="")
+                else:
+                    w.create_rectangle(x * rect_size + x_offset, y * rect_size + y_offset,
+                                                (x + 1) * rect_size + x_offset, (y + 1) * rect_size + y_offset,
+                                                fill="white", outline="")
+
+        canv.pack()
+
 
 if __name__ == "__main__":
     app = OptIn()

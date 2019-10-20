@@ -48,7 +48,7 @@ def scan_for_qrs():
 	vs.stop()
 
 
-def exchange(username, master, show_canvas, max_msgs_power = 5, switching_time = 1):
+def exchange(username, show_canvas, max_msgs_power = 5, switching_time = 1):
 	"""
 	Desc: a func that transmits and reads qrcodes to transmit two parts of a one time pad. returns a tuple
 			with the other's username, then the entire key (as a bytes object);
@@ -95,9 +95,10 @@ def exchange(username, master, show_canvas, max_msgs_power = 5, switching_time =
 
 	while should_continue:
 		if (len(found) == num_qrs) and not end_qr_posted:
-			canvas = tk.canvas(master, width = 512, height = 512)
-			bitmap.write_bitmap_to_canvas(bitmap.string_to_bitmap(qr_end_front), canvas, write_svg=True)
-			show_canvas(canvas)
+			#canvas = tk.Canvas(master, width = 512, height = 512)
+			#bitmap.write_bitmap_to_canvas(bitmap.string_to_bitmap(qr_end_front), canvas)
+			#show_canvas(canvas)
+			show_canvas(bitmap.string_to_bitmap(qr_end_front))
 			#show_new_qr(bitmap.string_to_bitmap(qr_end_front))
 			end_qr_posted = True
 		if transmition_complete_confirmed == False:
@@ -105,9 +106,11 @@ def exchange(username, master, show_canvas, max_msgs_power = 5, switching_time =
 
 				print('puttin new qr on screen')
 				#show_new_qr(qrs[0])
-				canvas = tk.canvas(master, width = 512, height = 512)
-				bitmap.write_bitmap_to_canvas(qrs[0], canvas,  write_svg=True)
-				show_canvas(canvas)
+				#canvas = tk.Canvas(master, width = 512, height = 512)
+				#bitmap.write_bitmap_to_canvas(qrs[0], canvas)
+				#show_canvas(canvas)
+				show_canvas(qrs[0])
+
 				qrs.append(qrs.pop(0))
 				last_time_qr_switched = time.monotonic()
 
@@ -124,3 +127,5 @@ def exchange(username, master, show_canvas, max_msgs_power = 5, switching_time =
 			break
 
 	print('TG! exchange:',found)
+
+#exchange('joanh', tk.Tk(), print)
