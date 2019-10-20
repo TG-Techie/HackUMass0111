@@ -3,6 +3,8 @@ import tkinter as tk
 from datetime import datetime
 import json
 
+import scanner
+
 class User:
 
     def __init__(self, userName, password):
@@ -58,6 +60,7 @@ class OptIn(tk.Tk):
 
     def __init__(self):
         tk.Tk.__init__(self)
+
         with open("users.json", "r") as jsonFile:
             self.users = json.load(jsonFile)
 
@@ -71,6 +74,13 @@ class OptIn(tk.Tk):
     def saveInfo(self):
         with open("users.json", "w") as jsonFile:
             json.dump(self.controller.users, jsonFile)
+
+        self.users = dict()
+
+        self._frame = None
+        self.switch_frame(SignedUpScreen)
+
+
     def getUsers(self):
         return self.users
     def getUsersObject(self):
@@ -93,6 +103,14 @@ class OptIn(tk.Tk):
 
         self._frame = new_frame
         self._frame.pack()
+"""
+    def mainloop(self):
+        while True:
+            tk.update_idletasks()
+            tk.update_tasks()
+            for func in self.func_loops.items():
+                func()
+"""
 
 
 class LoginScreen(tk.Frame):
