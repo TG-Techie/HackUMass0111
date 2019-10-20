@@ -46,10 +46,35 @@ def otp_bitmap(size=2953, write_svg=False):
     otp = os.urandom(size)
     return (otp, binary_to_bitmap(otp, write_svg))
 
-def string_and_otp_bitmap(string, endchar, size, write_svg=False):
+def string_and_otp_bitmap(string, sepchar, size, write_svg=False):
     """
-    Returns a tuple including a byte array containing first a string, ending character,
+    Returns a tuple including a byte array containing first a string, separating character,
     and a cryptographically secure one time pad and second its QR Code bitmap.
     """
     otp = os.urandom(size)
-    return (otp, binary_to_bitmap(bytearray().join([(string + endchar).encode('ascii'), otp]), write_svg))
+    return (otp, binary_to_bitmap(bytearray().join([(string + sepchar).encode('ascii'), otp]), write_svg))
+
+def write_bitmap_to_canvas(bitmap, w):
+    """
+    Writes a bitmap to a Tkinter canvas for scanning purposes
+    """
+    bitmap_size = len(bitmap)
+    w_width = w.info_width()
+    w_height = w.info_height()
+    x_offset = 0
+    y_offset = 0
+    w_size = 0
+    if w_width < w_height:
+        w_size = w_width
+        y_offset = (w_height - w_width) / 2
+    else:
+        w_size = w_height
+        x_offset = (w_width - w_height) / 2
+    rect_size = w_size / bitmap_size
+    for y in range(bitmap_size):
+        for x in range(bitmap_size):
+            if bitmap[y][x]:
+                canvas.create_rectangle(x * rect_size + x_offset, y * rect_size + y_offset, (x + 1) * rect_size + x_offset, (y + 1) * rect_size + y_offset, fill="black", outline="")
+            else:
+                canvas.create_rectangle(x * rect_size + x_offset, y * rect_size + y_offset, (x + 1) * rect_size + x_offset, (y + 1) * rect_size + y_offset, fill="white", outline="")
+
